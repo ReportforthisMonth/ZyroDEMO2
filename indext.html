@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zyro — Hero Spline Landing</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Spline Web Component -->
+  <script type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"></script>
+  <style>
+    :root{
+      --bg:#08070c;
+      --ink:#e9d0ff;
+      --muted:#a78be7;
+      --muted-2:#7f6ccf;
+      --outline:rgba(233,208,255,0.2);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background: radial-gradient(1200px 800px at 50% 45%, #1a1340 2%, #100c25 35%, var(--bg) 75%);
+      color:white; font-family: Manrope, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      overflow-x:hidden;
+    }
+    a{color:inherit; text-decoration:none}
+
+    /* ====== HERO WRAPPER ====== */
+    .hero{position:relative; min-height:100svh; width:100%; overflow:hidden; perspective:1200px;}
+
+    /* Spline interactive (camera drag). Only the scene moves with mouse. */
+    spline-viewer#scene{position:absolute; inset:0; z-index:25; display:block; pointer-events:auto; will-change:transform;}
+
+    /* ====== TOP NAV ====== */
+    .nav{position:absolute; top:20px; left:0; right:0; z-index:40; display:flex; justify-content:center;}
+    .nav ul{list-style:none; margin:0; padding:0; display:flex; gap:44px; align-items:center;}
+    .nav a{font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-radius:999px; border:1px solid transparent;}
+    .nav a:hover{color:#fff; border-color:var(--outline); background:rgba(255,255,255,0.03)}
+
+    /* ====== BIG BRAND LETTERS (static) ====== */
+    .brand{position:absolute; inset:0; z-index:35; display:grid; place-items:center; pointer-events:none;}
+    .brand-inner{width:min(1200px, 92vw); display:grid; grid-template-columns:repeat(4, 1fr); gap:clamp(6px, 2vw, 24px); align-items:center;}
+    .brand span{font-family:"Space Grotesk", Manrope, sans-serif; font-weight:400; font-size:clamp(52px, 14vw, 220px);
+      color:var(--ink); opacity:0.9; letter-spacing:0.06em; text-shadow:0 0 18px rgba(164,132,247,0.25);} 
+
+    /* ====== CTA BUTTON (BEHIND THE ROBOT) ====== */
+    .ctaWrap{position:absolute; left:0; right:0; top:62%; display:flex; justify-content:center; z-index:10;}
+    .cta{pointer-events:auto; display:inline-flex; align-items:center; gap:10px; padding:12px 28px; border-radius:999px; border:1px solid var(--outline);
+      background:rgba(255,255,255,0.02); color:#eae6ff; backdrop-filter: blur(6px);
+      font-size:14px; letter-spacing:0.12em; text-transform:uppercase;}
+    .cta:hover{background:rgba(255,255,255,0.06)}
+
+    /* ====== MOBILE TWEAKS ====== */
+    @media (max-width: 640px){
+      .nav ul{gap:18px}
+      .nav a{letter-spacing:0.14em}
+      .ctaWrap{top:68%}
+    }
+  </style>
+</head>
+<body>
+  <main class="hero" aria-label="Hero">
+    <!-- NAVIGATION -->
+    <nav class="nav" aria-label="Primary">
+      <ul>
+        <li><a href="#future">[ FURTURE ]</a></li>
+        <li><a href="#get-started">[ GET STARTED ]</a></li>
+        <li><a href="#roadmap">[ ROAD MAP ]</a></li>
+        <li><a href="#agent">[ ZYRO TRADING AGENT ]</a></li>
+      </ul>
+    </nav>
+
+    <!-- BIG LETTERS IN FRONT -->
+    <div class="brand" aria-hidden="true">
+      <div class="brand-inner">
+        <span>Z</span>
+        <span>Y</span>
+        <span>R</span>
+        <span>O</span>
+      </div>
+    </div>
+
+    <!-- THE ROBOT SCENE (middle layer) -->
+    <spline-viewer id="scene" url="https://prod.spline.design/wzt4Vc6rAR2GABaX/scene.splinecode" loading-anim="true" class="robot"></spline-viewer>
+
+    <!-- CTA BUTTON (BEHIND THE ROBOT) -->
+    <div class="ctaWrap">
+      <a id="get-started" class="cta" href="#get-started">Get Started</a>
+    </div>
+
+    <div class="note">Button is intentionally layered under the robot. The scene allows click-through.</div>
+  </main>
+
+  <noscript>
+    <div style="position:fixed;inset:0;background:#0b0a14;color:#fff;display:grid;place-items:center;font-family:Manrope,system-ui">
+      Enable JavaScript to view the 3D hero scene.
+    </div>
+  </noscript>
+  <script>
+    // Only move the Spline scene with the mouse; keep text/nav static.
+    (() => {
+      const viewer = document.getElementById('scene');
+      let targetX = 0, targetY = 0; // -1 .. 1
+      let x = 0, y = 0;             // eased values
+
+      function onMove(e){
+        const pt = (e.touches && e.touches[0]) ? e.touches[0] : e;
+        const cx = pt.clientX ?? window.innerWidth/2;
+        const cy = pt.clientY ?? window.innerHeight/2;
+        targetX = (cx / window.innerWidth) * 2 - 1;
+        targetY = (cy / window.innerHeight) * 2 - 1;
+      }
+
+      window.addEventListener('pointermove', onMove, { passive: true });
+      window.addEventListener('touchmove', onMove, { passive: true });
+
+      function raf(){
+        x += (targetX - x) * 0.08;
+        y += (targetY - y) * 0.08;
+        const moveX = x * 28; // px
+        const moveY = y * 18; // px
+        viewer.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+        requestAnimationFrame(raf);
+      }
+      raf();
+
+      // gentle idle sway
+      let idleTimer;
+      const startIdle = () => idleTimer = setInterval(() => {
+        targetX = Math.sin(Date.now() / 2000) * 0.1;
+        targetY = Math.cos(Date.now() / 2300) * 0.06;
+      }, 1600);
+      const stopIdle = () => { clearInterval(idleTimer); idleTimer = null; };
+      window.addEventListener('pointerdown', stopIdle);
+      window.addEventListener('pointerup', startIdle);
+      startIdle();
+    })();
+  </script>
+</body>
+</html>
